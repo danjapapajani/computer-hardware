@@ -1,0 +1,127 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dW:/Lab7/kit
+vALU
+Z1 DXx6 sv_std 3 std 0 22 AD7iAPLo6nTIKk<N0eo=D3
+Z2 !s110 1553734797
+!i10b 1
+!s100 4:EfLO3O1?T]K9kgbc:L^2
+IZZD40K@eb?5AY9oZ_RcX:1
+Z3 VDg1SIo80bB@j0V0VzS_@n1
+!s105 ALU_sv_unit
+S1
+R0
+w1551917284
+8ALU.sv
+FALU.sv
+L0 1
+Z4 OV;L;10.5b;63
+r1
+!s85 0
+31
+Z5 !s108 1553734797.000000
+Z6 !s107 tb.sv|harness.sv|cpu.sv|RF.sv|ALU.sv|
+Z7 !s90 -reportprogress|300|ALU.sv|RF.sv|cpu.sv|harness.sv|tb.sv|
+!i113 1
+Z8 tCvgOpt 0
+n@a@l@u
+vcontrol
+R1
+!s110 1553520186
+!i10b 1
+!s100 Q5]aIWi^l]H07C5k]TZ>U1
+IKME^CXJaEFfBQih0=QAXj2
+R3
+!s105 control_sv_unit
+S1
+R0
+w1551917273
+8control.sv
+Fcontrol.sv
+L0 1
+R4
+r1
+!s85 0
+31
+!s108 1553520185.000000
+!s107 tb.sv|harness.sv|datapath.sv|cpu.sv|control.sv|RF.sv|ALU.sv|
+!s90 -reportprogress|300|ALU.sv|RF.sv|control.sv|cpu.sv|datapath.sv|harness.sv|tb.sv|
+!i113 1
+R8
+vcpu
+R1
+R2
+!i10b 1
+!s100 e?cbmZah1n`UnO97ORz6<0
+IT9`Yee6?YX>h02cgIZCI`2
+R3
+!s105 cpu_sv_unit
+S1
+R0
+w1553734789
+8cpu.sv
+Fcpu.sv
+L0 1
+R4
+r1
+!s85 0
+31
+R5
+R6
+R7
+!i113 1
+R8
+vRF
+R1
+R2
+!i10b 1
+!s100 OKcR@oEo8dkzbYQdUVI8e3
+IdZHfZfF=VYU:jE<2JcWi`3
+R3
+!s105 RF_sv_unit
+S1
+R0
+w1553301538
+8RF.sv
+FRF.sv
+L0 1
+R4
+r1
+!s85 0
+31
+R5
+R6
+R7
+!i113 1
+R8
+n@r@f
+vtb
+R1
+R2
+!i10b 1
+!s100 gNNz_fZ;f97AYnAWcj[UP3
+I6R0_^aU6@b_]6BD?aI]3`0
+R3
+!s105 tb_sv_unit
+S1
+R0
+w1553731093
+8tb.sv
+Ftb.sv
+L0 1
+R4
+r1
+!s85 0
+31
+R5
+R6
+R7
+!i113 1
+R8

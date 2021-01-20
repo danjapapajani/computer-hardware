@@ -1,0 +1,320 @@
+module LDA
+(
+	input clk,
+	input i_start,
+	input logic [8:0] i_x0,
+	input logic [7:0] i_y0,
+	input logic [8:0] i_x1,
+	input logic [7:0] i_y1,
+	output [8:0] o_x,
+	output [7:0] o_y,
+	output o_plot
+);
+
+logic [8:0] i_counter;
+logic i_start_counter, i_steep, i_check_swap, i_local_vars, o_draw;
+
+counter init2
+(
+    .clk(CLOCK_50),
+    .o_start(i_start), 
+	.i_start_counter(i_start_counter),
+    .counter(i_counter)
+);
+	
+
+
+LDA_control init0
+(
+	.clk(clk),
+	.i_start(i_start),
+	.i_x0(i_x0),
+	.i_y0(i_y0),
+	.i_x1(i_x1),
+	.i_y1(i_y1),
+	.i_counter(i_counter),
+	.o_draw(o_draw),
+	.o_start_counter(i_start_counter),
+	.o_steep(i_steep),
+	.o_done(done),
+	.o_check_swap(i_check_swap),
+	.o_local_vars(i_local_vars)
+);
+
+LDA_datapath init1
+(
+	.clk(clk),
+	.i_x0(i_x0),
+	.i_y0(i_y0),
+	.i_x1(i_x1),
+	.i_y1(i_y1),
+	.i_counter(i_counter),
+	.i_start_counter(i_start_counter),
+	.i_steep(i_steep),
+	.i_done(done),
+	.i_check_swap(i_check_swap),
+	.i_local_vars(i_local_vars),
+	.i_draw(o_draw),
+	.o_x(o_x),
+	.o_y(o_y),
+	.o_plot(o_plot)
+);
+
+endmodule
+
+//**************************************
+//*                                    *
+//*          DATAPATH MODULE           *
+//*                                    *
+//**************************************
+module LDA_datapath
+(
+	input clk,
+	input [8:0] i_x0,
+	input [7:0] i_y0,
+	input [8:0] i_x1,
+	input [7:0] i_y1,
+	input [8:0] i_counter,
+	input i_start_counter,
+	input i_steep,
+	//input done,
+	input i_check_swap,
+	input i_local_vars,
+	input i_draw,
+	output o_x,
+	output o_y,
+	output o_plot
+);
+
+logic [8:0] deltax, error;
+logic [7:0] deltay, deltay_abs, y, ystep;
+logic steep;
+
+always_comb begin
+	if(i_local_vars)begin
+		assign deltay = i_y1-i_y0;
+		if(deltay[7] == 1'b1) 
+			assign deltay_abs = -deltay;
+		else
+			assign deltay_abs = deltay;
+	end	
+end
+
+always_ff @ (posedge clk)begin
+	if(o_steep) begin
+		i_x0 <= i_y0;
+		i_y0 <= i_x0;
+		
+		i_x1 <= i_y1;
+		i_y1 <= i_x1;
+		
+		steep <= o_steep;
+	end
+	
+	if(i_check_swap) begin
+		if(i_x0 > i_x1) begin
+			i_x0 <= i_x1;
+			i_x1 <= i_x0;
+			
+			i_y0 <= i_y1;
+			i_y1 <= i_y0;
+		end
+	end
+	
+	if(i_local_vars)begin
+		deltax <= i_x1 - i_x0;
+		error <= -(deltax >> 1);
+		y <= i_y0;
+		
+		if(i_y0 < i_y1)
+			ystep = 1;
+		else
+			ystep <= -1;
+	end
+	
+	if(i_draw) begin
+		if(steep) begin
+			o_x <= y;
+			o_y <= i_x0 + i_counter;
+			o_plot <= 1'b1;
+		end
+		else begin
+			o_x <= i_x0 + i_counter;
+			o_y <= y;
+			o_plot <= 1'b1;
+		end
+		
+		error <= error + deltay_abs;
+	end
+	
+	if(o_check) begin
+		if(error > 0) begin
+			y <= y + ystep;
+			error <= error - deltax;
+		end
+	end
+	
+end
+endmodule
+
+
+
+
+//**************************************
+//*                                    *
+//*      LDA CONTROLPATH MODULE        *
+//*                                    *
+//**************************************
+module LDA_control
+(
+	input clk,
+	input i_start,
+	input [8:0] i_x0,
+	input [7:0] i_y0,
+	input [8:0] i_x1,
+	input [7:0] i_y1,
+	input [8:0] i_counter,
+	output o_draw,
+	output logic o_start_counter,
+	output logic o_steep
+	//output logic o_done,
+	output logic o_check_swap,
+	output logic o_local_vars
+	
+);
+
+logic steep;
+logic [8:0] steep_deltax, deltax_abs;
+logic [7:0] steep_deltay, deltay_abs;
+
+assign steep_deltax = i_x1 - i_x0;
+assign steep_deltay = i_y1 - i_y0;
+
+enum int unsigned
+{
+	S_START,
+	S_STEEP,
+	S_SWAP_1,
+	S_SWAP_2,
+	S_LOCAL_VARS,
+	S_DRAW,
+	S_CHECK_ERROR,
+	S_UPDATE_VARS,
+	S_MATH
+	
+} state, nextstate;
+
+always_ff @ (posedge clk) begin
+
+	state <= nextstate;
+	
+end 
+
+always_comb begin
+	
+	nextstate = state;
+	o_steep = 1'b0;
+	o_check_swap = 1'b0;
+	o_local_vars = 1'b0;
+	o_start_counter = 1'b0;
+	//o_done = 1'b0;
+	o_draw = 1'b0;
+	
+	case (state)
+		
+		S_START: begin
+			if(i_start)
+				nextstate = S_MATH;
+		end
+		
+		S_MATH: begin
+			if(steep_deltax[8] == 1'b1)
+				assign deltax_abs = -steep_deltax;
+			else 
+				assign deltax_abs = steep_deltax;
+			if(steep_deltay[7] == 1'b1)
+				assign deltay_abs = -steep_deltay;
+			else
+				assign deltay_abs = steep_deltay;
+			nextstate = S_STEEP;
+		end
+		
+		S_STEEP: begin
+			assign steep = deltay_abs > deltax_abs;
+			if(steep)
+				nextstate = S_SWAP_1;
+			if(!steep)
+				nextstate = S_CHECK_X;
+		end
+		
+		S_SWAP_1: begin
+			o_steep = 1'b1;
+			nextstate = S_CHECK_X
+		end
+		
+		S_SWAP_2: begin
+			o_check_swap = 1'b1;
+			nextstate = S_LOCAL_VARS;
+		end
+		
+		S_LOCAL_VARS: begin
+			o_local_vars = 1'b1;
+			nextstate = S_DRAW;
+		end
+		
+		S_DRAW: begin
+			o_draw = 1'b1;
+			
+			if(steep) begin
+				if(i_counter == deltay_abs) begin
+					o_done = 1'b1;
+					nextstate = S_START;
+					end
+				else 
+					nextstate = S_CHECK_ERROR;
+				
+				o_start_counter = 1'b1;
+				end
+				
+			if(!steep) begin
+				if(i_counter == deltax_abs) begin
+					o_done = 1'b1;
+					nextstate = S_START;
+				end
+			else
+				nextstate = S_CHECK_ERROR;
+				
+				o_start_counter = 1'b1;
+			end
+		end
+			
+		S_CHECK_ERROR: begin
+			o_check = 1'b1;
+			nextstate = S_DRAW;
+		end
+			
+	endcase
+end
+
+endmodule 
+
+//**************************************
+//*                                    *
+//*           COUNTER MODULE           *
+//*                                    *
+//**************************************
+
+module counter(
+    input clk,
+    input o_start, i_start_counter,
+    output logic [8:0] counter
+	);
+	
+	always_ff @ (posedge clk)
+	begin 
+		if(o_start)
+			counter = 8'd0;
+		else if(i_start_counter)
+			counter <= counter + 1;
+	end
+endmodule
